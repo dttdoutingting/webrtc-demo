@@ -168,6 +168,7 @@ JSWebrtc.Player = (function () {
     _self.pc.ontrack = function (event) {
       _self.options.video['srcObject'] = event.streams[0]
     }
+
     _self.pc.addTransceiver('audio', { direction: 'recvonly' })
     _self.pc.addTransceiver('video', { direction: 'recvonly' })
 
@@ -227,44 +228,6 @@ JSWebrtc.Player = (function () {
     }
   }
 
-  Player.prototype.stream = function () {
-    var _self = this
-    return new Promise(function (resolve, reject) {
-      var port = _self.urlParams.port || 1985
-
-      // @see https://github.com/rtcdn/rtcdn-draft
-      var api = _self.urlParams.user_query.play || '/rtc/v1/stream/'
-      if (api.lastIndexOf('/') != api.length - 1) {
-        api += '/'
-      }
-
-      var url = 'http://' + _self.urlParams.server + ':' + port + api
-      for (var key in _self.urlParams.user_query) {
-        if (key != 'api' && key != 'stream') {
-          url += '&' + key + '=' + _self.urlParams.user_query[key]
-        }
-      }
-
-      // @see https://github.com/rtcdn/rtcdn-draft
-      var data = {
-        api: url,
-        streamurl: _self.urlParams.url,
-        clientip: null,
-      }
-      // console.log('offer: ' + JSON.stringify(data));
-
-      JSWebrtc.HttpPost(url, JSON.stringify(data)).then(
-        function (res) {
-          // console.log('answer: ' + JSON.stringify(res));
-          resolve(res.sdp)
-        },
-        function (rej) {
-          reject(rej)
-        }
-      )
-    })
-  }
-
   Player.prototype.play = function (ev) {
     if (this.animationId) {
       return
@@ -299,6 +262,29 @@ JSWebrtc.Player = (function () {
     this.pause()
     this.pc && this.pc.close() && this.pc.destroy()
     this.audioOut && this.audioOut.destroy()
+  }
+
+  Player.prototype.bytesReceivedId = function () {
+    return new Promise((resolve, reject) => {
+      this.pc
+        .getStats(null)
+        .then((stats) => {
+          stats.forEach((report) => {
+            if (report.type === 'transport') {
+              // Now the statistics for this report; we intentially drop the ones we
+              // sorted to the top above
+              Object.keys(report).forEach((statName) => {
+                if (statName === 'bytesReceived') {
+                  resolve(report[statName])
+                }
+              })
+            }
+          })
+        })
+        .catch((e) => {
+          reject(e)
+        })
+    })
   }
 
   Player.prototype.update = function () {

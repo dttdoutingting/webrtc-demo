@@ -6,51 +6,57 @@ const VideoElement = ({ url }) => {
   const [videoVisible, setVideoVisible] = useState(false)
   const [isStart, setIsStart] = useState(false)
   const playerRef = useRef(null)
-  const statusRef = useRef(false)
+
+  const bytesReceivedID = useRef(Number.MAX_SAFE_INTEGER)
 
   useEffect(() => {
     function start() {
-      if (videoVisible) {
+      if (videoVisible && !playerRef.current) {
         playerRef.current = new JSWebrtc.Player(url, {
           video: videoRef.current,
           autoplay: true,
+          onPlay: () => {
+            setIsStart(true)
+          },
         })
       }
     }
 
     function stop() {
-      if (playerRef.current?.destroy) {
-        playerRef.current.destroy()
+      if (playerRef.current) {
+        // 停止播放并清理相关的播放资源
+        playerRef.current?.destroy()
         playerRef.current = null
-        statusRef.current = false
-        setIsStart(false)
+        if (videoRef.current) {
+          // const _height = videoRef.current.clientHeight
+          videoRef.current.srcObject = null
+          // videoRef.current.height = _height
+        }
       }
     }
+
     start()
+
+    // 断开重连
+    const timerId = setInterval(async () => {
+      const id = await playerRef.current.bytesReceivedId()
+      if (id === bytesReceivedID.current) {
+        setIsStart(false)
+        stop()
+        start()
+      } else if (id < bytesReceivedID.current) {
+        setIsStart(false)
+      }
+      bytesReceivedID.current = id
+    }, 5000)
 
     return () => {
       stop()
+      if (timerId) {
+        clearInterval(timerId)
+      }
     }
   }, [videoVisible, url])
-
-  // useEffect(() => {
-  //   const timerId = setInterval(() => {
-  //     const video = videoRef.current
-  //     const playing =
-  //       video && !(video.paused || video.ended || video.seeking || video.readyState < video.HAVE_FUTURE_DATA)
-  //     console.log(playing)
-  //     // if (!playing) {
-  //     //   stop()
-  //     //   start()
-  //     // }
-  //   }, 5000)
-
-  //   return () => {
-  //     if (timerId) {
-  //       clearInterval(timerId)
-  //     }
-  //   }
-  // }, [])
 
   return (
     <video
@@ -59,7 +65,7 @@ const VideoElement = ({ url }) => {
         videoRef.current = el
       }}
       width={400}
-      className={!isStart ? 'disbaled-video' : ''}
+      className={isStart ? '' : 'disbaled-video'}
     ></video>
   )
 }
