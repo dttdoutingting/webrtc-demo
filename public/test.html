@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTCPlayer</title>
+  </head>
+
+  <style>
+    .top-wrapper {
+      padding-bottom: 20px;
+    }
+
+   .input-cls {
+       width: 300px;
+   } 
+
+    .disbaled-video {
+      background-color: black;
+      width: 400px;
+      /* height: 100%; */
+    }
+  </style>
+  <body>
+    <div class='top-wrapper'>
+        URL: <input type='text' class='input-cls' id='video-url'/>
+        <button onclick="play()">播放</button>
+    </div>
+    <div>
+      <video id="video-webrtc0" controls width="400"></video>
+      <video id="video-webrtc1" controls width="400"></video>
+      <video id="video-webrtc2" controls width="400"></video>
+      <video id="video-webrtc3" controls width="400"></video>
+      <video id="video-webrtc4" controls width="400"></video>
+      <video id="video-webrtc5" controls width="400"></video>
+    </div>
+
+    <script type="text/javascript" src="./jswebrtc.min.js"></script>
+    <script type="text/javascript">
+
+        function play(){
+            const url = document.getElementById('video-url').value
+            if(url){
+                [0,1,2,3,4,5].map((item)=> {
+                    let video = document.getElementById(`video-webrtc${item}`)
+                    video.srcObject = null;
+                    new JSWebrtc.Player(url + item, {
+                        video:video,
+                        autoplay: true
+                    })
+                })
+            }
+        }
+
+        function stop(){
+
+        }
+        
+    </script>
+  </body>
+</html>

@@ -6,8 +6,9 @@ const VideoElement = ({ url }) => {
   const [videoVisible, setVideoVisible] = useState(false)
   const [isStart, setIsStart] = useState(false)
   const playerRef = useRef(null)
+  const [statsInfo, setStatsInfo] = useState([])
 
-  const bytesReceivedID = useRef(Number.MAX_SAFE_INTEGER)
+  const bytesReceived = useRef(Number.MAX_SAFE_INTEGER)
 
   useEffect(() => {
     function start() {
@@ -39,16 +40,33 @@ const VideoElement = ({ url }) => {
 
     // 断开重连
     const timerId = setInterval(async () => {
-      const id = await playerRef.current.bytesReceivedId()
-      if (id === bytesReceivedID.current) {
-        setIsStart(false)
-        stop()
-        start()
-      } else if (id < bytesReceivedID.current) {
-        setIsStart(false)
+      // const id = await playerRef.current.bytesReceived()
+
+      // bytesReceived.current = id
+
+      if (playerRef.current) {
+        try {
+          const _arr = await playerRef.current.getStats()
+          const idInfo = _arr.find((item) => item.key === 'bytesReceived')
+          setStatsInfo(_arr)
+          if (idInfo.value === bytesReceived.current) {
+            setIsStart(false)
+            stop()
+            start()
+          } else if (idInfo.value < bytesReceived.current) {
+            setIsStart(false)
+          }
+
+          bytesReceived.current = idInfo.value
+        } catch (e) {
+          setIsStart(false)
+          console.error(e)
+
+          stop()
+          start()
+        }
       }
-      bytesReceivedID.current = id
-    }, 5000)
+    }, 1000)
 
     return () => {
       stop()
@@ -59,14 +77,24 @@ const VideoElement = ({ url }) => {
   }, [videoVisible, url])
 
   return (
-    <video
-      ref={(el) => {
-        setVideoVisible(true)
-        videoRef.current = el
-      }}
-      width={400}
-      className={isStart ? '' : 'disbaled-video'}
-    ></video>
+    <div>
+      <video
+        ref={(el) => {
+          setVideoVisible(true)
+          videoRef.current = el
+        }}
+        width={400}
+        controls
+        className={isStart ? '' : 'disbaled-video'}
+      ></video>
+      <div>
+        {statsInfo.map((item) => (
+          <div key={item.key}>
+            <strong>{item.key}:</strong> {item.value}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 

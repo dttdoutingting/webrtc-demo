@@ -181,7 +181,7 @@ JSWebrtc.Player = (function () {
       })
       .then(function (offer) {
         return new Promise(function (resolve, reject) {
-          var port = _self.urlParams.port || 1985
+          // var port = _self.urlParams.port || 1985
 
           // @see https://github.com/rtcdn/rtcdn-draft
           var api = _self.urlParams.user_query.play || '/rtc/v1/play/'
@@ -189,7 +189,7 @@ JSWebrtc.Player = (function () {
             api += '/'
           }
 
-          var url = 'http://' + _self.urlParams.server + ':' + port + api
+          var url = 'https://' + _self.urlParams.server + api
           for (var key in _self.urlParams.user_query) {
             if (key != 'api' && key != 'play') {
               url += '&' + key + '=' + _self.urlParams.user_query[key]
@@ -264,22 +264,32 @@ JSWebrtc.Player = (function () {
     this.audioOut && this.audioOut.destroy()
   }
 
-  Player.prototype.bytesReceivedId = function () {
+  Player.prototype.getStats = function () {
     return new Promise((resolve, reject) => {
       this.pc
         .getStats(null)
         .then((stats) => {
+          // let statsOutput = ''
+          let _arr = []
           stats.forEach((report) => {
-            if (report.type === 'transport') {
+            if (report.type === 'inbound-rtp' && report.id.includes('Video')) {
+              // statsOutput +=
+              //   `<h2>Report: ${report.type}</h2>\n<strong>ID:</strong> ${report.id}<br>\n` +
+              //   `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`
+
               // Now the statistics for this report; we intentially drop the ones we
               // sorted to the top above
+
               Object.keys(report).forEach((statName) => {
-                if (statName === 'bytesReceived') {
-                  resolve(report[statName])
-                }
+                // if (statName !== 'id' && statName !== 'timestamp' && statName !== 'type') {
+                _arr.push({ key: statName, value: report[statName] })
+                // }
               })
+              resolve(_arr)
             }
           })
+
+          // document.querySelector('.stats-box').innerHTML = statsOutput
         })
         .catch((e) => {
           reject(e)

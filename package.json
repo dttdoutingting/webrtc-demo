@@ -23,6 +23,7 @@
       "react-app/jest"
     ]
   },
+  "proxy": "https://box.ucloud.cn/",
   "browserslist": {
     "production": [
       ">0.2%",
