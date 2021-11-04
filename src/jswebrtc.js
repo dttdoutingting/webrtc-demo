@@ -181,7 +181,7 @@ JSWebrtc.Player = (function () {
       })
       .then(function (offer) {
         return new Promise(function (resolve, reject) {
-          // var port = _self.urlParams.port || 1985
+          var port = _self.urlParams.port || 1985
 
           // @see https://github.com/rtcdn/rtcdn-draft
           var api = _self.urlParams.user_query.play || '/rtc/v1/play/'
@@ -189,7 +189,7 @@ JSWebrtc.Player = (function () {
             api += '/'
           }
 
-          var url = 'https://' + _self.urlParams.server + api
+          var url = 'http://' + _self.urlParams.server + ':' + port + api
           for (var key in _self.urlParams.user_query) {
             if (key != 'api' && key != 'play') {
               url += '&' + key + '=' + _self.urlParams.user_query[key]

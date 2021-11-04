@@ -8,9 +8,9 @@ function App() {
 
   return (
     <div className="App">
-      {[0].map((item) => (
+      {[0, 1, 2, 3, 4, 5].map((item) => (
         <div className="video-item" key={item}>
-          <VideoElement url="webrtc://box.ucloud.cn/50913519/uaccessbox-p5dcqzjk__dev_video0_stream" />
+          <VideoElement url={`webrtc://106.75.32.7/live/yushi_dev_video${item}`} />
         </div>
       ))}
     </div>

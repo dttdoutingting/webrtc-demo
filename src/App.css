@@ -5,12 +5,13 @@
 }
 
 .video-item {
-  margin-bottom: 20px;
-  margin-right: 20px;
+  margin-bottom: 12px;
+  margin-right: 12px;
 }
 
 .disbaled-video {
   background-color: black;
-  width: 400px;
+  width: 640px;
+  height: 480px;
   /* height: 100%; */
 }

@@ -6,7 +6,7 @@ const VideoElement = ({ url }) => {
   const [videoVisible, setVideoVisible] = useState(false)
   const [isStart, setIsStart] = useState(false)
   const playerRef = useRef(null)
-  const [statsInfo, setStatsInfo] = useState([])
+  // const [statsInfo, setStatsInfo] = useState([])
 
   const bytesReceived = useRef(Number.MAX_SAFE_INTEGER)
 
@@ -44,11 +44,11 @@ const VideoElement = ({ url }) => {
 
       // bytesReceived.current = id
 
-      if (playerRef.current) {
+      if (playerRef.current && videoVisible) {
         try {
           const _arr = await playerRef.current.getStats()
           const idInfo = _arr.find((item) => item.key === 'bytesReceived')
-          setStatsInfo(_arr)
+          // setStatsInfo(_arr)
           if (idInfo.value === bytesReceived.current) {
             setIsStart(false)
             stop()
@@ -66,7 +66,7 @@ const VideoElement = ({ url }) => {
           start()
         }
       }
-    }, 1000)
+    }, 2000)
 
     return () => {
       stop()
@@ -83,17 +83,16 @@ const VideoElement = ({ url }) => {
           setVideoVisible(true)
           videoRef.current = el
         }}
-        width={400}
-        controls
+        width={640}
         className={isStart ? '' : 'disbaled-video'}
       ></video>
-      <div>
+      {/* <div>
         {statsInfo.map((item) => (
           <div key={item.key}>
             <strong>{item.key}:</strong> {item.value}
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   )
 }
