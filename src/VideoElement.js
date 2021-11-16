@@ -7,7 +7,7 @@ const VideoElement = ({ url }) => {
   const [isStart, setIsStart] = useState(false)
   const playerRef = useRef(null)
   // const [statsInfo, setStatsInfo] = useState([])
-
+  const num = useRef(0)
   const bytesReceived = useRef(Number.MAX_SAFE_INTEGER)
 
   useEffect(() => {
@@ -25,6 +25,7 @@ const VideoElement = ({ url }) => {
 
     function stop() {
       if (playerRef.current) {
+        setIsStart(false)
         // 停止播放并清理相关的播放资源
         playerRef.current?.destroy()
         playerRef.current = null
@@ -40,34 +41,41 @@ const VideoElement = ({ url }) => {
 
     // 断开重连
     const timerId = setInterval(async () => {
-      // const id = await playerRef.current.bytesReceived()
-
-      // bytesReceived.current = id
-
-      if (playerRef.current && videoVisible) {
-        try {
-          const _arr = await playerRef.current.getStats()
-          const idInfo = _arr.find((item) => item.key === 'bytesReceived')
-          // setStatsInfo(_arr)
-          if (idInfo.value === bytesReceived.current) {
-            setIsStart(false)
-            stop()
-            start()
-          } else if (idInfo.value < bytesReceived.current) {
-            setIsStart(false)
-          }
-
-          bytesReceived.current = idInfo.value
-        } catch (e) {
-          setIsStart(false)
-          console.error(e)
-
+      if (playerRef.current) {
+        if (
+          videoRef.current.paused ||
+          videoRef.current.ended ||
+          videoRef.current.seeking ||
+          videoRef.current.readyState < videoRef.current.HAVE_FUTURE_DATA
+        ) {
           stop()
           start()
+
+          return
+        }
+
+        const _info = await playerRef.current.getStats((e) => {
+          console.error(e.name + ': ' + e.message)
+          num.current = 0
+          stop()
+          start()
+        })
+
+        if (_info.bytesReceived === bytesReceived.current && videoVisible && url) {
+          num.current++
+          if (num.current > 3) {
+            num.current = 0
+            stop()
+            start()
+          }
+
+          // setIsStart(false)
+        } else {
+          num.current = 0
+          bytesReceived.current = _info?.bytesReceived || Number.MAX_SAFE_INTEGER
         }
       }
     }, 2000)
-
     return () => {
       stop()
       if (timerId) {
@@ -83,7 +91,7 @@ const VideoElement = ({ url }) => {
           setVideoVisible(true)
           videoRef.current = el
         }}
-        width={640}
+        width={320}
         className={isStart ? '' : 'disbaled-video'}
       ></video>
       {/* <div>

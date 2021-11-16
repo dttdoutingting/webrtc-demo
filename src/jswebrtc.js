@@ -217,7 +217,9 @@ JSWebrtc.Player = (function () {
         })
       })
       .then(function (answer) {
-        return _self.pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answer }))
+        if (_self.pc.signalingState !== 'closed') {
+          return _self.pc?.setRemoteDescription({ type: 'answer', sdp: answer })
+        }
       })
       .catch(function (reason) {
         throw reason
@@ -264,13 +266,19 @@ JSWebrtc.Player = (function () {
     this.audioOut && this.audioOut.destroy()
   }
 
-  Player.prototype.getStats = function () {
+  Player.prototype.getStats = function (errorFunc) {
     return new Promise((resolve, reject) => {
       this.pc
-        .getStats(null)
+        .getStats(
+          null,
+          () => {},
+          () => {
+            console.error('error')
+          }
+        )
         .then((stats) => {
           // let statsOutput = ''
-          let _arr = []
+
           stats.forEach((report) => {
             if (report.type === 'inbound-rtp' && report.id.includes('Video')) {
               // statsOutput +=
@@ -280,12 +288,12 @@ JSWebrtc.Player = (function () {
               // Now the statistics for this report; we intentially drop the ones we
               // sorted to the top above
 
-              Object.keys(report).forEach((statName) => {
-                // if (statName !== 'id' && statName !== 'timestamp' && statName !== 'type') {
-                _arr.push({ key: statName, value: report[statName] })
-                // }
-              })
-              resolve(_arr)
+              // Object.keys(report).forEach(statName => {
+              //     // if (statName !== 'id' && statName !== 'timestamp' && statName !== 'type') {
+              //     _arr.push({ key: statName, value: report[statName] });
+              //     // }
+              // });
+              resolve(report)
             }
           })
 
