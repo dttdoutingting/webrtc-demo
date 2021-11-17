@@ -75,7 +75,7 @@ const VideoElement = ({ url }) => {
           bytesReceived.current = _info?.bytesReceived || Number.MAX_SAFE_INTEGER
         }
       }
-    }, 2000)
+    }, 3000)
     return () => {
       stop()
       if (timerId) {

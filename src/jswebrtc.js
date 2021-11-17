@@ -217,6 +217,7 @@ JSWebrtc.Player = (function () {
         })
       })
       .then(function (answer) {
+        // signalingState === 'closed' 时，setRemoteDescription 会报错
         if (_self.pc.signalingState !== 'closed') {
           return _self.pc?.setRemoteDescription({ type: 'answer', sdp: answer })
         }
